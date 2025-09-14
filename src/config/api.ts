@@ -7,8 +7,11 @@
 
 // Get the API URL from environment or construct it
 export function getApiUrl(): string {
-  // For relative URLs in production (goes through proxy)
-  if (import.meta.env.PROD) {
+  // For production on Railway, always use relative URLs (goes through nginx proxy)
+  // Check multiple conditions to ensure we're in production
+  if (import.meta.env.PROD || 
+      window.location.hostname.includes('railway.app') ||
+      window.location.hostname !== 'localhost') {
     return '';
   }
 
@@ -17,15 +20,13 @@ export function getApiUrl(): string {
     return import.meta.env.VITE_API_URL;
   }
 
-  // For development, construct from window location
+  // For local development only
   const protocol = window.location.protocol;
   const host = window.location.hostname;
   // Use configured port or default to 8181
   const port = import.meta.env.VITE_ARCHON_SERVER_PORT || '8181';
   
-  if (!import.meta.env.VITE_ARCHON_SERVER_PORT) {
-    console.info('[Archon] Using default ARCHON_SERVER_PORT: 8181');
-  }
+  console.info('[Archon] Development mode - Using ARCHON_SERVER_PORT:', port);
   
   return `${protocol}//${host}:${port}`;
 }
