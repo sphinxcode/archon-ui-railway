@@ -18,12 +18,10 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 
     # Proxy API calls to archon-server
-    # IMPORTANT: Strip /api prefix when proxying
+    # IMPORTANT: Keep /api prefix - archon-server expects it
     location /api/ {
-        # Rewrite to remove /api prefix before proxying
-        rewrite ^/api/(.*) /$1 break;
-        
-        proxy_pass ${ARCHON_SERVER_URL};
+        # Do NOT rewrite - pass the full /api/* path to archon-server
+        proxy_pass ${ARCHON_SERVER_URL}/api/;
         
         # CRITICAL: Enable SNI for SSL handshake to work with Railway
         proxy_ssl_server_name on;
