@@ -18,12 +18,16 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 
     # Proxy API calls to archon-server
+    # IMPORTANT: Strip /api prefix when proxying
     location /api/ {
+        # Rewrite to remove /api prefix before proxying
+        rewrite ^/api/(.*) /$1 break;
+        
         proxy_pass ${ARCHON_SERVER_URL};
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
+        proxy_set_header Host $proxy_host;
         proxy_cache_bypass $http_upgrade;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -41,11 +45,11 @@ server {
 
     # Socket.IO specific endpoint
     location /socket.io/ {
-        proxy_pass ${ARCHON_SERVER_URL};
+        proxy_pass ${ARCHON_SERVER_URL}/socket.io/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
+        proxy_set_header Host $proxy_host;
         proxy_cache_bypass $http_upgrade;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
